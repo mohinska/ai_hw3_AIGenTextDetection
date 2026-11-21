@@ -22,8 +22,6 @@ Solution to Homework 3 of the "Artificial Intelligence" course at UCU: classify 
 | train | 272,352 | yes |
 | test | 25,000 | no |
 
-The data is not stored in this repository.
-
 ## Validation
 
 - One **fixed stratified validation split**: 10% of `train.csv`, stratified by label and language, seed 42 (`common.split_train_val`). Every model is compared on the same rows by **macro-F1**.
@@ -34,7 +32,7 @@ The data is not stored in this repository.
 
 | Step | What | Notebook |
 |---|---|---|
-| 1. EDA | class balance by language and domain, text lengths, examples, what makes fusion different | `01_eda.ipynb` (todo) |
+| 1. EDA | class balance by language and domain, text lengths, examples, what makes fusion different | `01_eda.ipynb` |
 | 2. Baseline | TF-IDF word / char n-grams + Logistic Regression, small search over features and C | [02_baseline_tfidf](notebooks/02_baseline_tfidf.ipynb) |
 | 3. Encoder | fine-tuned multilingual transformer, long-text handling | todo |
 | 4. Experiments | at least two experiments against a fixed reference | todo |
@@ -73,7 +71,7 @@ On push to `main`, `.github/workflows/deploy.yml` publishes the report to GitHub
 
 **Kaggle** (how the results were produced):
 1. New notebook → *Add Input* → the competition data (it appears under `/kaggle/input/...`).
-2. Settings → Internet **on**. If the repo is private, add a Kaggle Secret `GITHUB_TOKEN`.
+2. Settings → Internet **on**.
 3. Import a notebook from `notebooks/` and *Run all*. The first cell clones this repository and imports `src/`; outputs are written to `/kaggle/working`.
 
 **Locally:** put `train.csv`, `test.csv`, `sample_submission.csv` into `data/`, `pip install -r requirements.txt`, run the notebooks from `notebooks/`.
