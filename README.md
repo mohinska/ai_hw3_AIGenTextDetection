@@ -32,8 +32,8 @@ Solution to Homework 3 of the "Artificial Intelligence" course at UCU: classify 
 
 | Step | What | Notebook |
 |---|---|---|
-| 1. EDA (local) | class balance by language and domain, lengths in XLM-R tokens, style statistics, fusion vs human / ai, examples, distinctive words, data artifacts | [01_eda](notebooks/01_eda.ipynb) |
-| 2. Baseline | TF-IDF word / char n-grams + Logistic Regression, small search over features and C | [02_baseline_tfidf](notebooks/02_baseline_tfidf.ipynb) |
+| 1. EDA (local) | class balance by language and domain, lengths in XLM-R tokens, style statistics, fusion vs human / ai, examples, distinctive words, data artifacts | [`01_eda`](notebooks/01_eda.ipynb) |
+| 2. Baseline | TF-IDF word / char n-grams + Logistic Regression, small search over features and C | [`02_baseline_tfidf`](notebooks/02_baseline_tfidf.ipynb) |
 | 3. Encoder | fine-tuned multilingual transformer, long-text handling | todo |
 | 4. Experiments | at least two experiments against a fixed reference | todo |
 | 5. Explainability (bonus) | token attributions / SHAP / LIME | todo |
