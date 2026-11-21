@@ -32,7 +32,7 @@ Solution to Homework 3 of the "Artificial Intelligence" course at UCU: classify 
 
 | Step | What | Notebook |
 |---|---|---|
-| 1. EDA | class balance by language and domain, text lengths, examples, what makes fusion different | `01_eda.ipynb` |
+| 1. EDA (local) | class balance by language and domain, lengths in XLM-R tokens, style statistics, fusion vs human / ai, examples, distinctive words, data artifacts | [01_eda](notebooks/01_eda.ipynb) |
 | 2. Baseline | TF-IDF word / char n-grams + Logistic Regression, small search over features and C | [02_baseline_tfidf](notebooks/02_baseline_tfidf.ipynb) |
 | 3. Encoder | fine-tuned multilingual transformer, long-text handling | todo |
 | 4. Experiments | at least two experiments against a fixed reference | todo |
@@ -48,30 +48,9 @@ report.md         the report; index.html renders it as a site
 requirements.txt  packages
 ```
 
-To view the report as a site locally (it loads `report.md`, so it needs a server, not `file://`):
+To view the report as a site locally:
 
 ```bash
 python -m http.server 8000
 # open http://localhost:8000
 ```
-
-On push to `main`, `.github/workflows/deploy.yml` publishes the report to GitHub Pages (Settings → Pages → Source: GitHub Actions).
-
-### `src/common.py`
-
-- `SEED`, `VAL_SIZE`, `LABELS`, `TEXT_COL`, `LABEL_COL`: shared constants.
-- `find_data_dir`: finds the competition data under `/kaggle/input` or locally in `data/`.
-- `load_data`: `train.csv`, `test.csv`, `sample_submission.csv`.
-- `lang_col`: name of the language column, if present.
-- `split_train_val`: the fixed stratified train / validation split.
-- `subsample`: stratified subsample of the train part with the same seed.
-- `save_submission`: aligns predictions to the `sample_submission.csv` order, checks ids and labels, saves without index.
-
-## Run
-
-**Kaggle** (how the results were produced):
-1. New notebook → *Add Input* → the competition data (it appears under `/kaggle/input/...`).
-2. Settings → Internet **on**.
-3. Import a notebook from `notebooks/` and *Run all*. The first cell clones this repository and imports `src/`; outputs are written to `/kaggle/working`.
-
-**Locally:** put `train.csv`, `test.csv`, `sample_submission.csv` into `data/`, `pip install -r requirements.txt`, run the notebooks from `notebooks/`.
