@@ -10,18 +10,15 @@ VAL_SIZE = 0.10
 LABELS = ["human", "ai", "fusion"]
 TEXT_COL, LABEL_COL = "text", "label"
 
-ON_KAGGLE = os.path.exists("/kaggle/input")
-WORK_DIR = "/kaggle/working" if ON_KAGGLE else "."
+WORK_DIR = "/kaggle/working"
 
 
 def find_data_dir():
-    """Kaggle: competition files attached as input. Locally: ./data or ../data."""
-    kaggle = [os.path.dirname(p) for p in sorted(glob.glob("/kaggle/input/**/train.csv", recursive=True))]
-    candidates = kaggle + ["data", "../data", "."]
-    for d in candidates:
-        if os.path.exists(os.path.join(d, "train.csv")):
-            return d
-    raise FileNotFoundError("train.csv not found: attach the competition data on Kaggle or put it into ./data")
+    """Competition files attached as Kaggle input."""
+    found = sorted(glob.glob("/kaggle/input/**/train.csv", recursive=True))
+    if not found:
+        raise FileNotFoundError("train.csv not found: attach the competition data as Kaggle input")
+    return os.path.dirname(found[0])
 
 
 def load_data(data_dir=None):
@@ -63,3 +60,45 @@ def save_submission(test_ids, test_pred, sample, path):
     assert sub["label"].isin(LABELS).all(), "missing or invalid labels"
     sub.to_csv(path, index=False)
     return sub
+
+
+def f1_by(y_true, y_pred, groups):
+    """Macro-F1 per group (e.g. domain or language), plus group size."""
+    from sklearn.metrics import f1_score
+    df = pd.DataFrame({"y": list(y_true), "p": list(y_pred), "g": list(groups)})
+    return (df.groupby("g")[["y", "p"]]
+              .apply(lambda d: pd.Series({"n": len(d), "macro_f1": f1_score(d.y, d.p, average="macro")}))
+              .astype({"n": int}).round(4).sort_values("macro_f1"))
+
+
+def save_fig(name):
+    """Save the current matplotlib figure to WORK_DIR/images (download it for the report) and show it."""
+    import matplotlib.pyplot as plt
+    img_dir = os.path.join(WORK_DIR, "images")
+    os.makedirs(img_dir, exist_ok=True)
+    plt.tight_layout()
+    plt.savefig(os.path.join(img_dir, name), dpi=150, bbox_inches="tight")
+    plt.show()
+
+
+def save_proba(ids, proba, classes, name, split):
+    """Write outputs/{split}_proba_{name}.csv: id + p_human, p_ai, p_fusion (fixed column order)."""
+    cols = [f"p_{c}" for c in classes]
+    df = pd.DataFrame(proba, columns=cols)[[f"p_{c}" for c in LABELS]]
+    df.insert(0, "id", list(ids))
+    out_dir = os.path.join(WORK_DIR, "outputs")
+    os.makedirs(out_dir, exist_ok=True)
+    df.to_csv(os.path.join(out_dir, f"{split}_proba_{name}.csv"), index=False)
+
+
+def find_outputs(pattern):
+    """Files written by earlier notebooks: attached as Kaggle input (notebook output) or in this session."""
+    found = glob.glob(f"/kaggle/input/**/{pattern}", recursive=True)
+    found += glob.glob(os.path.join(WORK_DIR, "outputs", pattern))
+    return sorted(set(found))
+
+
+def load_proba(path, ids):
+    """Probabilities from a save_proba file, aligned to ids, columns in LABELS order."""
+    df = pd.read_csv(path).set_index("id").loc[list(ids)]
+    return df[[f"p_{c}" for c in LABELS]].to_numpy()

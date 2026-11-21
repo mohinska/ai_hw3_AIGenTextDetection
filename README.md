@@ -34,9 +34,10 @@ Solution to Homework 3 of the "Artificial Intelligence" course at UCU: classify 
 |---|---|---|
 | 1. EDA (local) | class balance by language and domain, lengths in XLM-R tokens, style statistics, fusion vs human / ai, examples, distinctive words, data artifacts | [`01_eda`](notebooks/01_eda.ipynb) |
 | 2. Baseline | TF-IDF word / char n-grams + Logistic Regression, small search over features and C | [`02_baseline_tfidf`](notebooks/02_baseline_tfidf.ipynb) |
-| 3. Encoder | fine-tuned multilingual transformer, long-text handling | todo |
-| 4. Experiments | at least two experiments against a fixed reference | todo |
-| 5. Explainability (bonus) | token attributions / SHAP / LIME | todo |
+| 3. Encoder | XLM-R fine-tuned, long texts: truncate vs chunks | [`03_encoder`](notebooks/03_encoder.ipynb) |
+| 4. Experiments | TF-IDF + class weights / domain / stylometry vs reference | [`04_experiments_tfidf`](notebooks/04_experiments_tfidf.ipynb) |
+| 4. Experiments | ensemble of models, class weights for macro-F1 (cross-fitted on val) | [`05_ensemble_thresholds`](notebooks/05_ensemble_thresholds.ipynb) |
+| 5. Explainability (bonus) | TF-IDF coefficients, per-text contributions | [`06_xai`](notebooks/06_xai.ipynb) |
 
 ## Repository
 
