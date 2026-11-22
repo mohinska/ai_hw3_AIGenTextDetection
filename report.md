@@ -22,7 +22,7 @@ I compare a TF-IDF baseline, a fine-tuned multilingual encoder and further exper
 
 ## Data and EDA
 
-Code: [01_eda.ipynb](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/01_eda.ipynb)
+Code: [`01_eda.ipynb`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/01_eda.ipynb)
 
 | Split | Texts | Labels |
 |---|---:|---|
@@ -51,23 +51,21 @@ Findings and what follows from them:
 
 ## Validation
 
-<!-- TODO: describe the split in your words.
-     Facts from the code (src/common.py, split_train_val): 10% of train.csv, stratified by label + language,
-     seed 42, the same split for every model; vectorizers / tokenizers fitted on the train part only. -->
+The validation split is 10% of `train.csv` (27,236 texts), stratified by label and language with seed 42 ([`split_train_val`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/common.py)). Parameters tuned on validation in `05` (ensemble weights, class scaling) are chosen on one half of it and scored on the other, so their scores stay comparable with untuned models.
 
 ## Baseline
 
-Code: [02_baseline_tfidf.ipynb](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/02_baseline_tfidf.ipynb)
+Code: [`02_baseline_tfidf.ipynb`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/02_baseline_tfidf.ipynb)
 
 | Features | C | Val macro-F1 |
 |---|---:|---:|
-| word 1-2 |  |  |
-| char_wb 2-5 |  |  |
-| word + char |  |  |
+| word 1-2 | 8.0 | 0.8467 |
+| char_wb 2-5 | 2.0 | **0.8724** |
+| word + char | 2.0 | 0.8723 |
 
-<!-- TODO: parameter search, per-class metrics, confusion matrix: what is confused with what. -->
+Character n-grams carry most of the signal: `char_wb_2-5` reaches 0.8724, words alone 0.8467, and combining both adds nothing. The model separates `ai` almost perfectly (F1 0.984); nearly all errors are between `human` and `fusion` (18% of `fusion` predicted as `human`, 15% the other way). The weakest domains are `blog_authorship_corpus` (0.75) and `gutenberg` (0.80). Public LB 0.86898 is close to validation, so the split is a reliable proxy.
 
-<!-- ![Baseline confusion matrix](images/baseline_cm.png) -->
+![Baseline confusion matrix](images/baseline_cm.png)
 
 ## Encoder
 
@@ -88,7 +86,7 @@ Unsuccessful attempts: <!-- TODO -->
 
 | Model | Setup | Val macro-F1 | F1 human | F1 ai | F1 fusion | Public LB |
 |---|---|---:|---:|---:|---:|---:|
-| TF-IDF + LogReg (baseline) |  |  |  |  |  |  |
+| TF-IDF + LogReg (baseline) | char_wb 2-5, C=2, 60k train | 0.8724 | 0.8092 | 0.9843 | 0.8238 | 0.86898 |
 | <!-- encoder --> |  |  |  |  |  |  |
 | <!-- experiment 1 --> |  |  |  |  |  |  |
 | <!-- experiment 2 --> |  |  |  |  |  |  |
@@ -109,7 +107,7 @@ Selected Kaggle submissions:
 | <!-- submission_....csv --> |  |  |  |
 | <!-- submission_....csv --> |  |  |  |
 
-Run: notebooks run on Kaggle (competition data attached as input, Internet on), clone this repository and import the shared code from [src/common.py](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/common.py); packages: [requirements.txt](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/requirements.txt); seed 42. <!-- TODO: order of notebooks, GPU, approximate run time. -->
+Run: notebooks run on Kaggle (competition data attached as input, Internet on), clone this repository and import the shared code from [`src/common.py`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/common.py); packages: [`requirements.txt`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/requirements.txt); seed 42. <!-- TODO: order of notebooks, GPU, approximate run time. -->
 
 ## Conclusion
 
@@ -120,7 +118,3 @@ AI usage: <!-- TODO: what AI was used for (code only). -->
 ## References
 
 <!-- TODO: models, papers and code used, e.g. XLM-R, mDeBERTa, scikit-learn, Hugging Face Transformers. -->
-
-## Appendix
-
-<!-- Tables and figures that do not fit in 2 pages. -->
