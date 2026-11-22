@@ -69,32 +69,51 @@ Character n-grams carry most of the signal: `char_wb_2-5` reaches 0.8724, words 
 
 ## Encoder
 
-<!-- TODO: backbone, max length and how texts longer than it are handled, training setup,
-     comparison with the baseline on the same split. -->
+Code: [`03_encoder.ipynb`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/03_encoder.ipynb)
+
+| Model | Long texts | Val macro-F1 | F1 human | F1 ai | F1 fusion |
+|---|---|---:|---:|---:|---:|
+| XLM-R base | truncate (first 512 tokens) | 0.8353 | 0.7489 | 0.9848 | 0.7721 |
+| XLM-R base | chunks ([`chunk_ids`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/features.py), averaged) | **0.8530** | 0.7649 | 0.9800 | 0.8140 |
+| TF-IDF baseline | full text | 0.8724 | 0.8092 | 0.9843 | 0.8238 |
+
+`xlm-roberta-base` was fine-tuned for one epoch on 40k texts (first 512 tokens, 21 min on a T4). Reading the whole text in 512-token chunks and averaging the probabilities beats truncation by 0.018, with the largest gains on long-text domains (`gutenberg` +0.09, `euro_court_cases` +0.04). The encoder still trails the TF-IDF baseline (0.853 vs 0.872, LB 0.848); the training loss was still falling, so it is undertrained. It collapses on `arxiv_papers` (0.47 vs 0.85), probably because it cannot see text length, which separates `ai` there. Its errors differ from the baseline: it confuses `human` as `fusion` (recall 0.71), while the baseline does the opposite, and it is better on `student_essays` and `blog_authorship_corpus`. This makes it useful in an ensemble.
+
+![Encoder confusion matrix](images/encoder_cm.png)
 
 ## Experiments
 
-<!-- TODO: at least two experiments, each compared with a fixed reference (name it). -->
+Reference for 04: the baseline config (`char_wb_2-5`, `C=2`, same 60k texts). Reference for 05: the best single model on val.
 
-### Experiment 1: <!-- name -->
+| Experiment | Notebook | Val macro-F1 | Delta vs reference |
+|---|---|---:|---:|
+| `class_weight="balanced"` | [`04`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/04_experiments_tfidf.ipynb) |  |  |
+| + one-hot `domain` | `04` |  |  |
+| + stylometry ([`style_features`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/features.py)) | `04` |  |  |
+| all three | `04` |  |  |
+| ensemble of models | [`05`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb) |  |  |
+| per-class scaling | `05` |  |  |
+| ensemble + scaling | `05` |  |  |
 
-### Experiment 2: <!-- name -->
-
-Unsuccessful attempts: <!-- TODO -->
+<!-- TODO: conclusions after 04 / 05, including what did not help -->
 
 ## Results
 
 | Model | Setup | Val macro-F1 | F1 human | F1 ai | F1 fusion | Public LB |
 |---|---|---:|---:|---:|---:|---:|
 | TF-IDF + LogReg (baseline) | char_wb 2-5, C=2, 60k train | 0.8724 | 0.8092 | 0.9843 | 0.8238 | 0.86898 |
-| <!-- encoder --> |  |  |  |  |  |  |
+| XLM-R base, chunks | 40k train, 1 epoch | 0.8530 | 0.7649 | 0.9800 | 0.8140 | 0.84822 |
 | <!-- experiment 1 --> |  |  |  |  |  |  |
 | <!-- experiment 2 --> |  |  |  |  |  |  |
 | <!-- final --> |  |  |  |  |  |  |
 
 ## Bonus: explainability
 
-<!-- TODO: method (SHAP / LIME / token attributions), what the model relies on, conclusions. -->
+Code: [`06_xai.ipynb`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/06_xai.ipynb)
+
+<!-- TODO: conclusions after 06 -->
+
+<!-- ![Top features per class](images/xai_top_features.png) -->
 
 ## Final model and reproducibility
 
@@ -107,7 +126,17 @@ Selected Kaggle submissions:
 | <!-- submission_....csv --> |  |  |  |
 | <!-- submission_....csv --> |  |  |  |
 
-Run: notebooks run on Kaggle (competition data attached as input, Internet on), clone this repository and import the shared code from [`src/common.py`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/common.py); packages: [`requirements.txt`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/requirements.txt); seed 42. <!-- TODO: order of notebooks, GPU, approximate run time. -->
+Run: all notebooks except `01` run on Kaggle (competition data attached, Internet on); each clones this repository and imports [`src/`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src). Seed 42.
+
+| Order | Notebook | Accelerator | Extra inputs |
+|---|---|---|---|
+| 1 | [`02_baseline_tfidf`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/02_baseline_tfidf.ipynb) | CPU | - |
+| 2 | [`03_encoder`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/03_encoder.ipynb) | GPU T4 | output of `02` |
+| 2 | [`04_experiments_tfidf`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/04_experiments_tfidf.ipynb) | CPU | - |
+| 2 | [`06_xai`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/06_xai.ipynb) | CPU | - |
+| 3 | [`05_ensemble_thresholds`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb) | CPU | outputs of `02`, `03`, `04` |
+
+`01_eda` runs locally with the data in `data/`.
 
 ## Conclusion
 
@@ -117,4 +146,10 @@ AI usage: <!-- TODO: what AI was used for (code only). -->
 
 ## References
 
-<!-- TODO: models, papers and code used, e.g. XLM-R, mDeBERTa, scikit-learn, Hugging Face Transformers. -->
+- XLM-R: Conneau et al., "Unsupervised Cross-lingual Representation Learning at Scale", ACL 2020; weights `xlm-roberta-base` from Hugging Face
+- Hugging Face Transformers, PyTorch
+- scikit-learn (TF-IDF, logistic regression, metrics)
+
+## Appendix
+
+<!-- Tables and figures that do not fit in 2 pages. -->
