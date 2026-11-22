@@ -87,15 +87,17 @@ Reference for 04: the baseline config (`char_wb_2-5`, `C=2`, same 60k texts). Re
 
 | Experiment | Notebook | Val macro-F1 | Delta vs reference |
 |---|---|---:|---:|
-| `class_weight="balanced"` | [`04`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/04_experiments_tfidf.ipynb) |  |  |
-| + one-hot `domain` | `04` |  |  |
-| + stylometry ([`style_features`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/features.py)) | `04` |  |  |
-| all three | `04` |  |  |
+| `class_weight="balanced"` | [`04`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/04_experiments_tfidf.ipynb) | 0.8725 | +0.0001 |
+| + one-hot `domain` | `04` | 0.8700 | -0.0025 |
+| + stylometry ([`style_features`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/features.py)) | `04` | 0.8694 | -0.0031 |
+| all three | `04` | 0.8702 | -0.0022 |
 | ensemble of models | [`05`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb) |  |  |
 | per-class scaling | `05` |  |  |
 | ensemble + scaling | `05` |  |  |
 
-<!-- TODO: conclusions after 04 / 05, including what did not help -->
+On top of TF-IDF nothing helped. Balanced class weights only move errors from `human` to `fusion` (val +0.0001, LB 0.86989 vs 0.86898). One-hot `domain` and stylometric features make the model slightly worse (-0.0025 and -0.0031): character n-grams already encode the domain and the style, and the extra dense features add noise while making training 4x slower. The linear model is saturated, so the remaining gains have to come from combining it with the encoder.
+
+<!-- TODO: conclusions after 05 -->
 
 ## Results
 
@@ -103,7 +105,7 @@ Reference for 04: the baseline config (`char_wb_2-5`, `C=2`, same 60k texts). Re
 |---|---|---:|---:|---:|---:|---:|
 | TF-IDF + LogReg (baseline) | char_wb 2-5, C=2, 60k train | 0.8724 | 0.8092 | 0.9843 | 0.8238 | 0.86898 |
 | XLM-R base, chunks | 40k train, 1 epoch | 0.8530 | 0.7649 | 0.9800 | 0.8140 | 0.84822 |
-| <!-- experiment 1 --> |  |  |  |  |  |  |
+| TF-IDF + `class_weight` | char_wb 2-5, C=2, balanced | 0.8725 | 0.8132 | 0.9845 | 0.8198 | 0.86989 |
 | <!-- experiment 2 --> |  |  |  |  |  |  |
 | <!-- final --> |  |  |  |  |  |  |
 
