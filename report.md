@@ -113,9 +113,9 @@ On top of TF-IDF nothing helped. Balanced class weights only move errors from `h
 
 Code: [`06_xai.ipynb`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/06_xai.ipynb)
 
-<!-- TODO: conclusions after 06 -->
+For a linear model the contribution of an n-gram to a class score is exact (TF-IDF value x coefficient), so no LIME / SHAP approximation is needed. The strongest features of every class are punctuation and typography, not words. `ai` texts are recognised by typographic apostrophes and quotes (`’s`, `“`, `”`) and by `!` / `?`; `human` by straight apostrophes after a period and the German `Dank.` that ends Bundestag speeches; `fusion` by a space before punctuation (`_'_`, `_._`, `_...`), which looks like the seams where rewritten parts were spliced into the human text. In a typical `fusion` -> `human` error the decision rests on common words (`will`, `be`): the rewritten part leaves no formatting trace. The baseline therefore mostly detects formatting artifacts of the generation pipeline: this works on the test set, which comes from the same pipeline, but would not transfer to cleanly formatted texts.
 
-<!-- ![Top features per class](images/xai_top_features.png) -->
+![Top features per class](images/xai_top_features.png)
 
 ## Final model and reproducibility
 
