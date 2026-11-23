@@ -30,7 +30,7 @@ Homework 3 of the "Artificial Intelligence" course at UCU: classify a text as wr
 | 2. Baseline | TF-IDF word / char n-grams + Logistic Regression, small search over features and C | [`02_baseline_tfidf`](notebooks/02_baseline_tfidf.ipynb) |
 | 3. Encoder | XLM-R fine-tuned, long texts: truncate vs chunks | [`03_encoder`](notebooks/03_encoder.ipynb) |
 | 4. Experiments | TF-IDF + class weights / domain / stylometry vs reference | [`04_experiments_tfidf`](notebooks/04_experiments_tfidf.ipynb) |
-| 4. Experiments | ensemble of models, class weights for macro-F1 (cross-fitted on val) | [`05_ensemble_thresholds`](notebooks/05_ensemble_thresholds.ipynb) |
+| 4. Experiments | ensemble of models, class weights, stacking with `domain` + typography features (cross-fitted on val) | [`05_ensemble_thresholds`](notebooks/05_ensemble_thresholds.ipynb) |
 | 5. Explainability (bonus) | TF-IDF coefficients, per-text contributions | [`06_xai`](notebooks/06_xai.ipynb) |
 
 ## Repository
