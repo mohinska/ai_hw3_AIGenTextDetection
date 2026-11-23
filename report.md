@@ -133,7 +133,7 @@ The final model is the same ensemble ([`05_ensemble_thresholds`](https://github.
 | Model | Train | Val macro-F1 | Public LB |
 |---|---|---:|---:|
 | TF-IDF `char_wb_2-5`, `C=2` | 245k | 0.8951 | <!-- TODO --> |
-| XLM-R base, chunks | 245k | <!-- TODO --> | <!-- TODO --> |
+| XLM-R base, chunks | 245k | 0.8727 | <!-- TODO --> |
 | Ensemble + scaling | weights tuned on val | <!-- TODO --> | <!-- TODO --> |
 
 More data alone lifts the TF-IDF model from 0.8724 to 0.8951, with the biggest gain on `arxiv_papers` (0.85 -> 0.89); `blog_authorship_corpus` stays the weakest domain (0.76). <!-- TODO: encoder / ensemble after the full runs -->
