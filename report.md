@@ -91,13 +91,13 @@ Reference for 04: the baseline config (`char_wb_2-5`, `C=2`, same 60k texts). Re
 | + one-hot `domain` | `04` | 0.8700 | -0.0025 |
 | + stylometry ([`style_features`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/features.py)) | `04` | 0.8694 | -0.0031 |
 | all three | `04` | 0.8702 | -0.0022 |
-| ensemble of models | [`05`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb) |  |  |
-| per-class scaling | `05` |  |  |
-| ensemble + scaling | `05` |  |  |
+| ensemble of models | [`05`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb) | 0.8983 | +0.0258 |
+| per-class scaling | `05` | 0.8722 | -0.0003 |
+| ensemble + scaling | `05` | **0.9004** | **+0.0278** |
 
 On top of TF-IDF nothing helped. Balanced class weights only move errors from `human` to `fusion` (val +0.0001, LB 0.86989 vs 0.86898). One-hot `domain` and stylometric features make the model slightly worse (-0.0025 and -0.0031): character n-grams already encode the domain and the style, and the extra dense features add noise while making training 4x slower. The linear model is saturated, so the remaining gains have to come from combining it with the encoder.
 
-<!-- TODO: conclusions after 05 -->
+Combining models is what works. The best single model is `tfidf_class_weight` (0.8725); averaging the TF-IDF baseline and the encoder with equal weights and boosting `p_human` x2.0 and `p_fusion` x1.5 gives 0.9004 on validation (+0.028, chosen on one half of val and scored on the other) and 0.89673 on the public LB. Without the encoder the same search gave only +0.0003, and scaling a single model gives nothing, so the gain comes from the two models making different errors.
 
 ## Results
 
@@ -106,7 +106,7 @@ On top of TF-IDF nothing helped. Balanced class weights only move errors from `h
 | TF-IDF + LogReg (baseline) | char_wb 2-5, C=2, 60k train | 0.8724 | 0.8092 | 0.9843 | 0.8238 | 0.86898 |
 | XLM-R base, chunks | 40k train, 1 epoch | 0.8530 | 0.7649 | 0.9800 | 0.8140 | 0.84822 |
 | TF-IDF + `class_weight` | char_wb 2-5, C=2, balanced | 0.8725 | 0.8132 | 0.9845 | 0.8198 | 0.86989 |
-| <!-- experiment 2 --> |  |  |  |  |  |  |
+| Ensemble + scaling (`05`) | baseline 0.5 + encoder 0.5 | 0.9004 |  |  |  | 0.89673 |
 | <!-- final --> |  |  |  |  |  |  |
 
 ## Bonus: explainability
