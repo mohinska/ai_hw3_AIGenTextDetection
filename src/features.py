@@ -2,6 +2,7 @@
 import re
 
 import numpy as np
+import pandas as pd
 from scipy.sparse import hstack
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -19,10 +20,12 @@ def fit_tfidf(names, train_texts):
 
 
 def tfidf_transform(vecs, texts):
+    """Stack the outputs of the fitted vectorizers into one sparse matrix."""
     return hstack([v.transform(texts) for v in vecs.values()]).tocsr()
 
 
 def tfidf_feature_names(vecs):
+    """Feature names prefixed with the vectorizer name, e.g. "char_wb_2-5: ab"."""
     return np.concatenate([[f"{n}:{f}" for f in v.get_feature_names_out()] for n, v in vecs.items()])
 
 
@@ -72,3 +75,21 @@ def mean_by_text(chunk_probs, text_idx, n_texts):
     out = np.zeros((n_texts, chunk_probs.shape[1]))
     np.add.at(out, text_idx, chunk_probs)
     return out / np.bincount(text_idx, minlength=n_texts)[:, None]
+
+
+ARTIFACTS = {   # formatting artifacts found in 06 (counts per 1000 characters)
+    "curly_apostrophe": "’",
+    "curly_quotes": "[“”„]",
+    "straight_apostrophe": "'",
+    "space_before_punct": r" [.,!?;:']",
+    "ellipsis": r"\.\.\.|…",
+    "exclamation": "!",
+    "question": r"\?",
+}
+
+
+def artifact_features(texts):
+    """Counts of typography artifacts per 1000 characters (one row per text)."""
+    t = texts.fillna("").astype(str).reset_index(drop=True)
+    per_1k = t.str.len().clip(lower=1) / 1000
+    return pd.DataFrame({k: t.str.count(p) / per_1k for k, p in ARTIFACTS.items()})

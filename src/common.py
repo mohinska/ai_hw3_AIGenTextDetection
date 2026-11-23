@@ -22,6 +22,7 @@ def find_data_dir():
 
 
 def load_data(data_dir=None):
+    """train, test and sample_submission DataFrames."""
     data_dir = data_dir or find_data_dir()
     train = pd.read_csv(os.path.join(data_dir, "train.csv"))
     test = pd.read_csv(os.path.join(data_dir, "test.csv"))
@@ -30,6 +31,7 @@ def load_data(data_dir=None):
 
 
 def lang_col(df):
+    """Name of the language column, if present."""
     return next((c for c in ["language", "lang"] if c in df.columns), None)
 
 
@@ -46,6 +48,7 @@ def split_train_val(train, seed=SEED, val_size=VAL_SIZE):
 
 
 def subsample(df, n, seed=SEED):
+    """Fixed stratified subsample of n rows (None = all rows)."""
     if n is None or n >= len(df):
         return df
     part, _ = train_test_split(df, train_size=n, stratify=df[LABEL_COL], random_state=seed)
