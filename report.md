@@ -136,7 +136,7 @@ The final model is the same ensemble ([`05_ensemble_thresholds`](https://github.
 | XLM-R base, chunks | 245k | <!-- TODO --> | <!-- TODO --> |
 | Ensemble + scaling | weights tuned on val | <!-- TODO --> | <!-- TODO --> |
 
-More data alone lifts the TF-IDF model from 0.8724 to 0.8951. <!-- TODO: encoder / ensemble after the full runs -->
+More data alone lifts the TF-IDF model from 0.8724 to 0.8951, with the biggest gain on `arxiv_papers` (0.85 -> 0.89); `blog_authorship_corpus` stays the weakest domain (0.76). <!-- TODO: encoder / ensemble after the full runs -->
 
 Selected Kaggle submissions:
 
@@ -157,18 +157,6 @@ Run: all notebooks except [`01_eda`](https://github.com/mohinska/ai_hw3_AIGenTex
 
 [`01_eda`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/01_eda.ipynb) runs locally with the data in `data/`. `FINAL = False` in [`02_baseline_tfidf`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/02_baseline_tfidf.ipynb) / [`03_encoder`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/03_encoder.ipynb) reproduces the experiments, `FINAL = True` the final models.
 
-## Conclusion
-
-<!-- TODO -->
-
-AI usage: <!-- TODO: what AI was used for (code only). -->
-
 ## References
 
 - XLM-R: Conneau et al., "Unsupervised Cross-lingual Representation Learning at Scale", ACL 2020; weights `xlm-roberta-base` from Hugging Face
-- Hugging Face Transformers, PyTorch
-- scikit-learn (TF-IDF, logistic regression, metrics)
-
-## Appendix
-
-<!-- Tables and figures that do not fit in 2 pages. -->
