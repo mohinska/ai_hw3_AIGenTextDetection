@@ -28,15 +28,14 @@ Code: [`01_eda.ipynb`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blo
 | de | 14,510 (27.5%) | 20,337 (38.5%) | 17,924 (34.0%) | 52,771 |
 | all | 66,730 (24.5%) | 121,940 (44.8%) | 83,682 (30.7%) | 272,352 |
 
-Findings and what follows from them:
+Findings and the decisions taken:
 
-- **Imbalance:** ai 44.8%, human 24.5% -> class weights / threshold tuning
+- **Imbalance:** ai 44.8%, human 24.5% -> `class_weight="balanced"`, per-class probability scaling
 - **Language = domain:** German is only bundestag (+428 gutenberg) -> no language feature; split stratified by label + language
-- **Domain shortcuts:** arxiv 84% ai, gutenberg 92% ai; in arxiv ai texts are ~3x shorter -> check F1 per domain
-- **Test shift:** gutenberg 2.7% -> 7.4%, German 19.4% -> 14.7% -> val may differ from LB
-- **Long texts:** 64% over 512 tokens (German up to 92%) -> chunking for the encoder
-- **AI style:** longer words, more even sentences; fusion is in between, closer to human, keeps human typos -> fusion is the hardest class, mostly confused with human
-- **Artifacts:** English fragments in 2% of German ai texts, PDF ligatures in English fusion -> easy signal for char n-grams
+- **Domain shortcuts:** arxiv 84% ai, gutenberg 92% ai; in arxiv ai texts are ~3x shorter -> F1 per domain; one-hot `domain` in the stacking meta-model
+- **Long texts:** 64% over 512 tokens (German up to 92%) -> the encoder reads the whole text in 512-token chunks
+- **AI style:** longer words, more even sentences; fusion is in between, closer to human, keeps human typos -> stylometric features on top of TF-IDF
+- **Artifacts:** English fragments in 2% of German ai texts, PDF ligatures in English fusion -> char n-grams in the baseline; typography counts in the stacking meta-model
 
 ![Class share by language and domain](images/eda_balance.png)
 
@@ -44,7 +43,7 @@ Findings and what follows from them:
 
 ## Validation
 
-The validation split is 10% of `train.csv` (27,236 texts), stratified by label and language with seed 42 ([`split_train_val`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/common.py)). Parameters tuned on validation in [`05_ensemble_thresholds`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb) (ensemble weights, class scaling, the stacking meta-model) are chosen on one half of it and scored on the other, so their scores stay comparable with untuned models.
+The validation split is 10% of `train.csv` (27,236 texts), stratified by label and language with seed 42 ([`split_train_val`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/src/common.py)). Parameters tuned on validation in [`05_ensemble_thresholds`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb) (ensemble weights, class scaling, the stacking meta-model) are chosen on one half of it and scored on the other.
 
 ## Baseline
 
@@ -91,7 +90,7 @@ On top of TF-IDF nothing helped. Balanced class weights only move errors from `h
 
 ### Experiment 2: ensemble and per-class scaling
 
-Code: [`05_ensemble_thresholds.ipynb`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb). Reference: the best single model on val (`tfidf_class_weight`, 0.8725). Inputs: probabilities of the baseline ([`02_baseline_tfidf`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/02_baseline_tfidf.ipynb)), the encoder ([`03_encoder`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/03_encoder.ipynb)) and [`04_experiments_tfidf`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/04_experiments_tfidf.ipynb).
+Code: [`05_ensemble_thresholds.ipynb`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb). Reference: the best single model on val (TF-IDF + LogReg, balanced, 0.8725). Inputs: probabilities of the baseline ([`02_baseline_tfidf`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/02_baseline_tfidf.ipynb)), the encoder ([`03_encoder`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/03_encoder.ipynb)) and [`04_experiments_tfidf`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/04_experiments_tfidf.ipynb).
 
 | Change vs reference | Val macro-F1 | Delta |
 |---|---:|---:|
@@ -105,11 +104,14 @@ Combining models is what works. The best combination averages the TF-IDF baselin
 
 | Model | Setup | Val macro-F1 | F1 human | F1 ai | F1 fusion | Public LB |
 |---|---|---:|---:|---:|---:|---:|
-| TF-IDF + LogReg (baseline) | `char_wb_2-5`, `C=2`, 60k train | 0.8724 | 0.8092 | 0.9843 | 0.8238 | 0.86898 |
-| XLM-R base, chunks | 40k train, 1 epoch | 0.8530 | 0.7649 | 0.9800 | 0.8140 | 0.84822 |
-| TF-IDF + `class_weight` | `char_wb_2-5`, `C=2`, balanced | 0.8725 | 0.8132 | 0.9845 | 0.8198 | 0.86989 |
-| Ensemble + scaling ([`05_ensemble_thresholds`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb)) | baseline 0.5 + encoder 0.5 | 0.9004 | - | - | - | 0.89673 |
-| **Stacking (final)** | base models on 245k + `domain` + typography | **0.9361** | - | - | - | **0.93481** |
+| TF-IDF + LogReg | `char_wb_2-5`, `C=2`, 60k | 0.8724 | 0.8092 | 0.9843 | 0.8238 | 0.86898 |
+| TF-IDF + LogReg, balanced | `char_wb_2-5`, `C=2`, `class_weight="balanced"`, 60k | 0.8725 | 0.8132 | 0.9845 | 0.8198 | 0.86989 |
+| XLM-R base | chunks, 1 epoch, 40k | 0.8530 | 0.7649 | 0.9800 | 0.8140 | 0.84822 |
+| Ensemble + scaling | TF-IDF 0.5 + XLM-R 0.5, 60k / 40k | 0.9004 | - | - | - | 0.89673 |
+| TF-IDF + LogReg | `char_wb_2-5`, `C=2`, 245k | 0.8951 | 0.8405 | 0.9895 | 0.8552 | - |
+| XLM-R base | chunks, 1 epoch, 245k | 0.8727 | 0.8147 | 0.9621 | 0.8413 | - |
+| Ensemble + scaling | TF-IDF 0.5 + XLM-R 0.5, 245k | 0.9347 | - | - | - | - |
+| **Stacking (final)** | TF-IDF + XLM-R (245k) + `domain` + typography | **0.9361** | - | - | - | **0.93481** |
 
 ## Bonus: explainability
 
@@ -123,7 +125,7 @@ Method: exact n-gram contributions of the linear baseline (TF-IDF value x coeffi
 | `human` | straight apostrophe after a period (`.'`), German `Dank.` |
 | `fusion` | space before punctuation kept from the human original (`_'_`, `_._`, `_...`) |
 
-The model relies on typography, not vocabulary. A space before punctuation is a human habit (1.18 per 1000 characters in `human`, 0.85 in `fusion`, 0.25 in `ai`): `fusion` keeps it from the human original, while the generator never produces it. These are formatting artifacts of the data: they work on the test set but would not transfer to cleanly formatted texts.
+The model relies on typography, not vocabulary. A space before punctuation is a human habit (1.18 per 1000 characters in `human`, 0.85 in `fusion`, 0.25 in `ai`): `fusion` keeps it from the human original, while the generator never produces it. Local contributions agree: an `ai` news text is decided by `’s` and `“` / `”` alone, while a `fusion` text predicted as `human` rests on common words (`will`, `be`). These are formatting artifacts of the data: they work on the test set but would not transfer to cleanly formatted texts.
 
 ![Top features per class](images/xai_top_features.png)
 
@@ -131,11 +133,8 @@ The model relies on typography, not vocabulary. A space before punctuation is a 
 
 The final model is a stacking meta-model ([`05_ensemble_thresholds`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/05_ensemble_thresholds.ipynb)): logistic regression on the probabilities of the TF-IDF baseline and the encoder, one-hot `domain` and typography artifact counts (curly quotes, spaces before punctuation, ...), scored with the same 2-fold cross-fitting on val and refitted on the whole val for test. The base models are retrained on the whole train part (245k texts, `FINAL = True` in [`02_baseline_tfidf`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/02_baseline_tfidf.ipynb) and [`03_encoder`](https://github.com/mohinska/ai_hw3_AIGenTextDetection/blob/main/notebooks/03_encoder.ipynb)); experiments above use `FINAL = False` (60k / 40k texts).
 
-| Model | Train | Val macro-F1 |
-|---|---|---:|
-| TF-IDF `char_wb_2-5`, `C=2` | 245k | 0.8951 |
-| XLM-R base, chunks | 245k | 0.8727 |
-| Ensemble + scaling | weights tuned on val | 0.9347 |
-| **Stacking (final)** | meta-model fitted on val | **0.9361** |
-
 More data alone lifts the TF-IDF model from 0.8724 to 0.8951, with the biggest gain on `arxiv_papers` (0.85 -> 0.89); `blog_authorship_corpus` stays the weakest domain (0.76). The encoder gains +0.02 (0.853 -> 0.873) but still collapses on `arxiv_papers`, where TF-IDF is strong, while it is far better on `blog_authorship_corpus`. Combining the two stronger models lifts the ensemble from 0.900 to 0.935; stacking with `domain` and typography features adds a further +0.0014.
+
+**Selected submissions** (both `submission_ensemble.csv` from `05_ensemble_thresholds`): stacking on the full-data models (public 0.93481, private 0.93568) and ensemble + scaling on the 60k / 40k models (public 0.89673, private 0.89284).
+
+**How to run:** all notebooks except `01_eda` run on Kaggle with the competition data attached as input; the first cell clones the repo and imports `src/`. Run `02_baseline_tfidf` (CPU) and `03_encoder` (GPU T4) with `FINAL = True`, then `05_ensemble_thresholds`, which reads their saved probabilities and writes the submission.
